@@ -1,0 +1,71 @@
+Program_50Hz_60Hz:
+;==========================================================
+;检测电压频率是50Hz还是60Hz
+;==========================================================
+/*  	        
+            CLR   Timer_50_60Hz       ;清零Timer_50_60Hz寄存器
+_Wait_1_A:
+            WDTC
+	        MOV   A,Timer_50_60Hz     ;检测高电平
+	        SUB   A,@110
+	        JBS   STATUS,0
+	        JMP	  _50_60Hzche_Err     ;高平时间超过。	         
+	        JBC	  IO_Zore   
+	        JMP   _Wait_1_A           ;高电平检测完必。开始检测低电平
+_Wait_0_A: 
+            WDTC
+	        MOV	  A,Timer_50_60Hz     ;检测低电平
+	        SUB   A,@210
+	        JBS   STATUS,0
+            JMP	  _50_60Hzche_Err     ;低平时间超过。
+         	JBS	  IO_Zore   
+	        JMP   _Wait_0_A           ;低电平检测完必。开始检测下一周高电平                 
+            CLR   Timer_50_60Hz 
+_Wait_1_B:
+            WDTC
+	        MOV   A,Timer_50_60Hz     ;检测高电平
+	        SUB   A,@110
+	        JBS   STATUS,0
+	        JMP	  _50_60Hzche_Err     ;高平时间超过。
+	        JBC	  IO_Zore   
+	        JMP   _Wait_1_B           ;高电平检测完必。开始检测低电平              
+_Wait_0_B: 
+            WDTC
+        	MOV	  A,Timer_50_60Hz     ;检测低电平
+	        SUB   A,@210
+	        JBS   STATUS,0
+            JMP	  _50_60Hzche_Err     ;低平时间超过。
+         	JBS	  IO_Zore   
+	        JMP   _Wait_0_B           ;低电平检测完必。开始判断频率    
+_Synagain:
+	        MOV   A,@180             
+	        SUB   A,Timer_50_60Hz 
+	        JBC   STATUS,0
+	        JMP   _50hz:
+_60hz: 
+	        BS    Flag,Flag_60Hz          ;置1,60HZ标志位
+	        BC    Flag,Flag_50Hz          ;置1,60HZ标志位
+            JMP   Program_50Hz_60Hz_90    ;跳出程序   
+_50hz:
+	        BS    Flag,Flag_50Hz          ;置1,50HZ标志位
+	        BC    Flag,Flag_60Hz    
+            JMP   Program_50Hz_60Hz_90    ;跳出程序   
+_50_60Hzche_Err:  	       
+	        JMP   Program_50Hz_60Hz  
+Program_50Hz_60Hz_90:  
+*/
+            RET 
+
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         

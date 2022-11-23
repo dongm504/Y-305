@@ -1,0 +1,52 @@
+Timer_50Hz: 
+              JBC    P_50_60Hz                  ;第一次要检测到高电平
+              JMP    Check_91 
+              
+              CLR    AC_220_Cut
+              
+              INC    AC_220_Close                                       
+              MOV    A,@5       
+              SUB    A,AC_220_Close                  
+              JBS    STATUS,0
+              JMP    Program_50_60Hz_90
+              CLR    AC_220_Close             
+              BC     AC_CLOSE
+               
+              JBC    Hz_50_60
+              JMP    Program_50_60Hz_90     ;第一次上电泄压3秒钟
+              BS     Hz_50_60
+              BS     Power_Sign 
+              BC     FLAG_Moist   
+              BS     FLAG_Dry                                              
+              JMP    Program_50_60Hz_90 
+;-------------------------------------------            
+Check_91:
+              CLR    AC_220_Close
+              
+              INC    AC_220_Cut  
+              MOV    A,@220
+              SUB    A,AC_220_Cut                
+              JBS    STATUS,0
+              JMP    Program_50_60Hz_90 
+              CLR    AC_220_Cut 
+              
+              BC     Power_Sign 
+              BC     FLAG_Seal                   
+              BC     FLAG_Vac_Seal  
+              BC     FLAG_Vac_Seal_Motor 
+              BC     FLAG_Vac_Seal_Led  
+              BC     FLAG_Seal_Hot          ;控制加热
+              BC     FLAG_Seal_Hot_Led  
+              MOV    Seal_Timer,A    
+              BS     AC_CLOSE  
+              BC     Hz_50_60  
+              BC     TimerFlag_3S   
+              BC     Vacuum_Finish     
+              BC     TimerFlag_5Min 
+              CLR    NoKey_Timer_Sec    
+              CLR    NoKey_Timer_Min      
+              BC     Seal_Led_Delay3S       ;单封结束后 指示灯亮1秒钟   
+              BC     FLAG_Moist   
+              BC     FLAG_Dry 
+Program_50_60Hz_90:
+               RET

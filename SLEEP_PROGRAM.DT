@@ -1,0 +1,79 @@
+;进入空闲模式
+/*
+空闲模式和睡眠模式小结
+1. IDLE(0)+SLEP为睡眠模式
+   IDLE(1)+SLEP为空闲模式
+2. 
+   IO口唤醒
+   第一步：IOW  IOCE,@0     关闭看门狗。
+   第二步：IOW  IOC6,@0XFF  设IO口为输入
+   第三步：IOW  IOCD,@0XFF  设置上拉电阻（可以不设）
+   第四步：MOV  PORT6,PORT6 PORT6的IO口状态
+   第五步：IOW  IOCF,@0x02	使能ICIE这调指令是一定要有的 
+   第六步：WDTC 清关门狗
+   第七步：ENI 或 DISI选择中断后是否进入中断
+   
+   TCC溢出定时器唤醒只可以唤醒空闲模式不可以唤醒睡眠模式
+   第一步：IOW  IOCE,@0     关闭看门狗。
+   第二步：IOW  IOCF,@0x01	使能TCIE这调指令是一定要有的 
+   第三步：WDTC 清关门狗
+   第四步：ENI 或 DISI选择中断后是否进入中断
+   
+   重点是每次只能有一种唤醒方式，不可以两种同时使用
+*/
+Idle_Program:
+              JBC  Key_DC_Chargen    ;充电的时候不睡眠
+              JMP  Idle_Program_90
+              JBC  Idle_Release      ;等待空闲标志位的释放
+              JMP  Idle_Program_90
+;---------------------------------------------------------
+;采用TCC溢出唤醒方式进行唤醒                                       
+              WDTC                  ;清看门狗
+                                   
+              NOP
+              NOP  
+              
+              INC   Key_Delay
+              NOP
+              MOV   A,@30
+              SUB   A,Key_Delay
+              JBS   STATUS,0
+              JMP   Idle_Program_90
+              CLR   Key_Delay
+              	                         
+              MOV   A,@0              
+	          MOV   AISR,A	        
+	          MOV   A,@0      
+	          MOV   ADCON,A	 
+	           
+              CLR   Key_Delay
+              
+              IOW	IOCE0,@0x0F	;使能看门狗，分频比1:256，P60作为普通IO口
+              IPAGE	0
+              MOV   A,@0x02
+              MOV   RE,A         ;使能 PORT5状态改变唤醒功能
+              
+                                                 
+              CLR   PORT5
+              CLR   PORT6                       
+              MOV   PORT5,PORT5
+            
+              BC    SCR,IDLE                         
+              
+              DISI                                    
+              SLEP                ;进入Sleep模式
+                    
+              NOP
+              NOP
+              NOP
+                              	             	                             	     
+              CLR   Key_Delay
+              IOW	IOCE0,@0x8F	;使能看门狗，分频比1:256，P60作为普通IO口	          
+              WDTC
+              ENI                  ;开中断
+;---------------------------------------------------------                       
+              NOP
+              NOP
+;---------------------------------------------------------
+Idle_Program_90:
+              RET

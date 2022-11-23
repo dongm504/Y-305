@@ -1,0 +1,52 @@
+Program_50_60Hz:
+              JBC    P_50_60Hz                  ;第一次要检测到高电平
+              JMP    Check_91 
+              
+              CLR    AC_220_Cut
+              
+              INC    AC_220_Close                                       
+              MOV    A,@5          
+              SUB    A,AC_220_Close                  
+              JBS    STATUS,0
+              JMP    Program_50_60Hz_90
+              CLR    AC_220_Close
+              
+              BC     AC_CLOSE 
+              
+              JBC    Flag_AC_Sign
+              JMP    Program_50_60Hz_90
+              BS     Flag_AC_Sign
+                
+              BS     Flag_AD_Test       ;第一次开机要检测NTC
+              
+              BC     Vacuum_Finish      ;清达到真空值标志位        
+              BS     Power_Flag  
+             
+              CLR    Count5Sec
+              CLR    Count120Sec   
+              
+              JMP    Program_50_60Hz_90 
+;-------------------------------------------            
+Check_91:
+              CLR    AC_220_Close
+              
+              INC    AC_220_Cut  
+              MOV    A,@250
+              SUB    A,AC_220_Cut                
+              JBS    STATUS,0
+              JMP    Program_50_60Hz_90 
+              CLR    AC_220_Cut 
+      
+              
+              MOV    A,@0
+              MOV    Key_Indx,A  
+              MOV    FLAG,A
+              MOV    FLAG1,A
+              MOV    FLAG2,A
+              MOV    NoKey_Timer_Min,A          
+              MOV    NoKey_Timer_Sec,A 
+              MOV    Seal_Timer,A    
+              BC     Flag_W_R  
+              BS     AC_CLOSE                           
+Program_50_60Hz_90:
+               RET

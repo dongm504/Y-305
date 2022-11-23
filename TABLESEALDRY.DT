@@ -1,0 +1,179 @@
+;9分钟呼吸法  1.充2秒钟+泄3秒钟     12次每分钟  循环3分钟
+;             2.充2.7秒钟+泄4秒钟   9次每分钟   循环3分钟
+;             3.充3.4秒钟+泄5.2秒钟 7次每分钟   循环3分钟 
+
+;18分钟呼吸法 1.充2秒钟+泄3秒钟     12次每分钟  循环6分钟
+;             2.充2.7秒钟+泄4秒钟   9次每分钟   循环6分钟
+;             3.充3.4秒钟+泄5.2秒钟 7次每分钟   循环6分钟 
+
+;古印度呼吸法 1.充4秒钟+保压7秒钟+8秒钟（间歇式放气）
+;             2.充4秒钟+保压7秒钟+8秒钟（间歇式放气）
+;             3.充4秒钟+保压7秒钟+8秒钟（间歇式放气）
+;             4.充2秒钟+泄3秒钟     12次每分钟  循环3分钟
+;             5.充2.7秒钟+泄4秒钟   9次每分钟   循环3分钟
+;             6.充3.4秒钟+泄5.2秒钟 7次每分钟   循环3分钟 
+
+;深呼吸模式   1.充3秒钟+保压1.5秒钟+间歇放气5秒钟 循环3分钟     
+        
+/***********************************************************************/ 
+
+Mode_Valve        ==  1      ;右气带
+
+Fc_Mode_Motor     ==  8      ;气泵 
+Frustrated        ==  0X80   ;泄气·
+;-----------------------------------------------------------------------
+Timer_02Sec       ==  2
+Timer_03Sec       ==  3
+Timer_05Sec       ==  5
+Timer_1Sec        ==  10
+Timer_1Sec5       ==  15
+Timer_2Sec        ==  20
+Timer_2Sec7       ==  27
+Timer_3Sec        ==  30
+Timer_3Sec4       ==  34
+Timer_4Sec        ==  40
+Timer_5Sec        ==  50
+Timer_5Sec2       ==  52
+Timer_7Sec        ==  70
+Timer_8Sec        ==  80
+Timer_10Sec       ==  100
+Timer_15Sec       ==  150
+
+Count4Sec         ==  4
+Count8Sec         ==  8
+Count19Sec        ==  19
+Count36Sec        ==  36
+Count27Sec        ==  27
+Count21Sec        ==  21
+Count72Sec        ==  72
+Count54Sec        ==  54
+Count42Sec        ==  42
+;----------------------------------------------------------------------
+Norm_BreatheStage1:
+    ADD	       PC,A
+	NOP
+  	RETL	   @Timer_2Sec        ;充气 3秒钟 
+    RETL	   @Fc_Mode_Motor|Mode_Valve       ; 
+	RETL	   @Timer_3Sec        ;放气 2秒钟
+    RETL	   @Frustrated 
+   	RETL	   @0   
+  	RETL	   @0  
+;----------------------------------------------------------------------
+Norm_BreatheStage2:
+    ADD	       PC,A
+    NOP
+    RETL	   @Timer_2Sec7       ;充气 3秒钟 
+    RETL	   @Fc_Mode_Motor|Mode_Valve        ;  
+	RETL	   @Timer_4Sec        ;放气 2秒钟
+    RETL	   @Frustrated 
+   	RETL	   @0   
+  	RETL	   @0  
+Norm_BreatheStage3:
+    ADD	       PC,A
+    NOP    
+    RETL	   @Timer_3Sec4       ;充气 3秒钟 
+    RETL	   @Fc_Mode_Motor|Mode_Valve        ;     ; 
+	RETL	   @Timer_5Sec2       ;放气 2秒钟
+    RETL	   @Frustrated 
+    RETL	   @0   
+  	RETL	   @0  
+;----------------------------------------------------------------------
+Ind_BreatheStage:
+  	ADD	       PC,A
+	NOP
+  	RETL	   @Timer_4Sec        ;充气 4秒钟 
+    RETL	   @Fc_Mode_Motor|Mode_Valve     ;     
+      ; 
+	RETL	   @Timer_7Sec        ;保压7秒钟 
+    RETL	   @Mode_Valve      ; 
+    
+    RETL	   @Timer_1Sec       ;泄0.5秒钟 
+    RETL	   @Frustrated    
+   	RETL	   @Timer_1Sec        ;保压1.5秒钟      ;         
+    RETL	   @Mode_Valve  
+   	RETL	   @Timer_1Sec       ;泄0.5秒钟         
+    RETL	   @Frustrated         ;    
+	RETL	   @Timer_1Sec       ;保压1.5秒钟
+    RETL	   @Mode_Valve    
+	RETL	   @Timer_1Sec       ;泄0.5秒钟 
+    RETL	   @Frustrated    
+   	RETL	   @Timer_1Sec      ;保压1.5秒钟      
+    RETL	   @Mode_Valve       ;      ; 
+	RETL	   @Timer_2Sec       ;泄0.5秒钟 
+    RETL	   @Frustrated 
+         ; 
+    RETL	   @0   
+  	RETL	   @0  
+;--------------------------------------------------------------------
+Slowly_BreatheStage:
+  	ADD	       PC,A
+	NOP
+  	RETL	   @Timer_3Sec        ;充气 3秒钟 
+    RETL	   @Fc_Mode_Motor|Mode_Valve  
+          ; 
+	RETL	   @Timer_1Sec5       ;保压1.5秒钟 
+    RETL	   @Mode_Valve  
+            ; 
+    RETL	   @Timer_1Sec       ;泄0.5秒钟 
+    RETL	   @Frustrated
+   	RETL	   @Timer_1Sec       ;保压1.5秒钟     ;         
+    RETL	   @Mode_Valve       ; 
+	RETL	   @Timer_1Sec       ;泄0.5秒钟 
+    RETL	   @Frustrated
+    RETL	   @Timer_1Sec       ;保压1.5秒钟      ;         
+    RETL	   @Mode_Valve   ; 
+	RETL	   @Timer_2Sec       ;泄0.5秒钟 
+    RETL	   @Frustrated  ;
+
+    RETL	   @0   
+  	RETL	   @0  
+;--------------------------------------------------------
+Table9Breathe:
+;9分钟呼吸法
+	ADD	       PC,A
+	NOP
+;	RETL	   @Count4Sec  ;循环36次
+;    RETL	   @Count4Sec  ;循环27次
+ ;   RETL	   @Count4Sec  ;循环21次
+	
+	RETL	   @Count36Sec  ;循环36次
+    RETL	   @Count27Sec  ;循环27次
+    RETL	   @Count21Sec  ;循环21次
+  	RETL	   @0       
+;----------------------------------------------------------------------	   
+Table18Breathe:
+;18分钟呼吸法
+  	ADD	       PC,A
+	NOP
+;	RETL	   @Count8Sec  ;循环36次
+ ;   RETL	   @Count8Sec  ;循环27次
+  ;  RETL	   @Count8Sec  ;循环21次	
+	
+	RETL	   @Count72Sec  ;循环36次
+    RETL	   @Count54Sec  ;循环27次
+    RETL	   @Count42Sec  ;循环21次
+  	RETL	   @0     
+;----------------------------------------------------------------------               
+IndBreathe:
+;古印度呼吸法
+	ADD	       PC,A
+	NOP
+	RETL	   @Count4Sec   ;循环4次
+	
+  ;	RETL	   @Count4Sec  ;循环36次
+  ; RETL	   @Count4Sec  ;循环27次
+  ;  RETL	   @Count4Sec  ;循环21次
+	
+    RETL	   @Count36Sec  ;循环36次
+    RETL	   @Count27Sec  ;循环27次
+    RETL	   @Count21Sec  ;循环21次
+  	RETL	   @0   
+;----------------------------------------------------------------------
+SlowlyBreathe:
+;深度呼吸法
+	ADD	       PC,A
+	NOP
+	RETL	   @Count19Sec   ;循环4次
+  	RETL	   @0   
+  	
+;---------------------------------------------------------------------

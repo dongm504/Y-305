@@ -1,0 +1,103 @@
+;------------------------------------------------------------
+;UART传送子程序(波特率2400)
+Uart_Tx: 
+   CJBC    TxEn,Uart_TxRet				
+   CJZ	   TxDly,Uart_Tx1       ;延时
+   DJNZ	   TxDly,Uart_TxRet     ;
+;--------------------------------------------   
+Uart_Tx1:
+   MOV     A,TxStatus 
+   JBC     STATUS,Z 
+   JMP	   Uart_Tx_Start
+;--------------------------------------------   
+   MOV     A,@1
+   XOR     A,TxStatus 
+   JBC     STATUS,Z 
+   JMP	   Uart_Tx_Data
+;--------------------------------------------   
+   MOV     A,@2
+   XOR     A,TxStatus 
+   JBC     STATUS,Z 
+   JMP	   Uart_Tx_Stop
+;--------------------------------------------   
+   MOV     A,@3
+   XOR     A,TxStatus 
+   JBC     STATUS,Z 
+   JMP	   Uart_Tx_Idle
+   JMP	$
+;------------------------------------------------------------
+Uart_Tx_Start:
+ 	MOV	   TxDly,@4       ;传送延迟
+	MOV	   CountTxBit,@8	;传送8bit数据
+	 
+	BC	   IO_Txd 	        ;输出高
+	INC	   TxStatus	        ;切换到传送数据状态
+	
+	MOV	   A,Tx_Ptr         ;传送指针
+	SUB	   A,@3             ;传输3个数据
+	ADD	   A,@TxBuf1
+	MOV	   FSR,A
+	MOV	   TxData,INDF	     ;赋值传送数据
+	JMP	   Uart_TxRet
+;------------------------------------------------------------
+Uart_Tx_Data:
+	RRC	   TxData
+	JBC    STATUS,C
+	BS	   IO_Txd 	
+	JBS	   STATUS,C
+	BC	   IO_Txd 		;传送1bit数据
+	MOV	   TxDly,@3	    ;传送延迟
+	DJNZ   CountTxBit,Uart_TxRet
+	INC	   TxStatus	    ;8bit数据传送结束，切换到传送停止位状态
+	JMP	   Uart_TxRet
+;------------------------------------------------------------
+Uart_Tx_Stop:
+	BS	  IO_Txd 		;停止位为低
+	MOV	  TxDly,@4	    ;传送延迟
+	INC	  TxStatus	    ;切换到传送结束
+	JMP	  Uart_TxRet
+;------------------------------------------------------------
+Uart_Tx_Idle:
+;	CJZ	Tx_Ptr,Uart_Tx_Idle1
+				;传送结束转为接收状态
+;------------------------------------------------------------				
+	DJNZ	Tx_Ptr,Uart_Tx_Idle1
+;-------------------------------------------------------------	
+;一组数据发送完成
+  	BC	TxEn		;清传送使能位
+;重新载入数据
+   ; BC  TxData_Inten
+	CLR	TxStatus	;复位传送状态
+
+	JMP	Uart_TxRet
+Uart_Tx_Idle1:
+	CLR	TxStatus	;否则返回继续传送
+	JMP	Uart_TxRet
+;------------------------------------------------------------
+Uart_TxRet:
+	RET
+;------------------------------------------------------------
+
+
+UartDataServiceTX:
+;每次发送完赋值:
+    CLR	PackageStatus
+	
+	MOV	Tx_Ptr,@3	;接收成功后，转传送状态4个数据
+	MOV	TxBuf1,@0Xaa
+				;赋值传送指针，准备传送数据
+	MOV	TxBuf2,AD_Vol_Buf10
+	MOV	TxBuf3,AD_Vol_Buf1	;初始化传送队列
+
+    BS	TxEn
+	CLR	TxStatus	;复位传送状态
+;--------------------------------------------------------------------------	
+	MOV	TxDly,@10	;赋传送之前的延时
+	JMP	UartDataServiceRet
+UartDataService241:
+	CLR	PackageStatus	
+	JMP	UartDataServiceRet
+UartDataServiceRet:
+	RET
+
+

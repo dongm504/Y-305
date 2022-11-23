@@ -1,0 +1,83 @@
+;************************************************************************
+;产品名称：Y-258 封口机					
+;客户：	   JCS						
+;功能说明：
+
+;************************************************************************
+;
+;
+;
+;
+;
+;
+;
+;************************************************************************
+;时钟频率4M   1/2Fose 
+/*
+ 2605 校验码：0X1297	
+*/
+    INCLUDE	"EM78P372N.inc"
+	INCLUDE	"ElanMacro.h"
+	INCLUDE	"ConstDef.h"
+	INCLUDE	"Macro.h"
+	INCLUDE	"RamDef.h"
+	
+;------------------------------------------------------------
+;程序复位入口
+	 ORG	   0x0000
+	 JMP       Start
+;------------------------------------------------------------
+;中断入口
+ ;   ORG       0X0006
+ ;    JMP       IntPort5Service
+	 ORG	   0x0009
+	 JMP       IntService
+	 ORG       0X000F
+;------------------------------------------------------------
+Start:
+     CALL      Initial	 
+     BC        Err_Vol
+     BS        Chargeing      
+MainLoop:
+     WDTC
+     ENI 
+;------------------------------------------------------------  		 
+     JBS      TimerFlag_5mS  
+     JMP      MainLoop_3
+     BC       TimerFlag_5mS   
+;------------------------------------------------------------        
+     CALL     KeyService 
+     CALL     Timer_Program 
+MainLoop_3:    
+     JBS      TimerFlag_100mS 
+     JMP      MainLoop_2
+     BC       TimerFlag_100mS      
+;工作的时候，直接电子显示 
+;充电的时候不检查
+     CALL     AD_Test 
+     CALL     Key_Program   
+     CALL     Display            
+    ; CALL     Idle_Program 
+     CALL     UartDataServiceTX    
+;------------------------------------------------------------    
+;检测电池电压        `
+MainLoop_2:        
+MainLoop_90:  
+	 JMP	     MainLoop
+;------------------------------------------------------------
+;子程序包含区
+    INCLUDE	"Initial.dt"
+	INCLUDE	"Display.dt"
+    INCLUDE	"IntService.dt"
+    INCLUDE "Timer_Prigram.dt"
+    INCLUDE "KeyService.dt"
+    INCLUDE "Key_Program.dt" 
+    INCLUDE "AD_Program.dt"
+    INCLUDE "AD_Deal.dt"
+    INCLUDE "Mn_AD_V.dt"
+    INCLUDE "AD_TEST_V.dt"
+	INCLUDE "AD_Test.dt"
+	INCLUDE "SLEEP_PROGRAM.dt"
+	INCLUDE "UART.dt"
+;------------------------------------------------------------
+	END

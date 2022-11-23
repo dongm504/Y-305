@@ -1,0 +1,113 @@
+TimeCount:
+;每40MS进入一次中断  
+;-------------------------------------------------------------
+          
+          INC      CountSec       ;100MS
+          MOV      A,@20
+          SUB      A,CountSec  
+          JBS      STATUS,0
+          JMP      TimeCount_1
+          CLR      CountSec
+             
+          BS       TimerFlag_100mS
+          
+          JBS      TimerFlagLED_100mS
+          JMP      $+3
+          BC       TimerFlagLED_100mS
+          JMP      $+2
+          BS       TimerFlagLED_100mS
+;-------------------------------------------------------------          
+TimeCount_1:                           
+          INC      Count500mSec       ;500MS
+          MOV      A,@100
+          SUB      A,Count500mSec 
+          JBS      STATUS,0
+          JMP      TimeCountRet
+          CLR      Count500mSec  
+                                  
+          BS       TimerFlag_500mS  
+          BS       Run_Led_500mS  
+           
+          JBS      TimerFlagLED_500mS
+          JMP      $+3
+          BC       TimerFlagLED_500mS
+          JMP      $+2
+          BS       TimerFlagLED_500mS
+                             
+;-------------------------------------------------------------
+          INC      Count3Sec      ;3秒钟
+          MOV      A,@6            ;当检测要NTC大于75的时候
+          SUB      A, Count3Sec   ;和检测不到NTC的时候SEAL灯闪
+          JBS      STATUS,0
+          JMP      TimeCount_Program1
+          CLR      Count3Sec 
+          BC       TimerFlag_3Sec
+;-------------------------------------------------------------          
+TimeCount_Program1:          
+;-------------------------------------------------------------
+;1.当没有按键按下的时候，过5分钟后，Sealer指示灯以5HZ频率闪烁。
+;  当大于12分钟后，所有的指示灯熄灭。
+         JBC       Power_Flag
+         JMP       Timer_12Minute
+         
+         CLR       NoKey_Timer_Min          
+         CLR       NoKey_Timer_Sec
+         BC        TimerFlag_5Min  
+         
+         JMP       TimeCountRet
+Timer_12Minute:
+;--------------------------------------------------------------   
+;当工作的时候不做定时
+
+         JBC        FLAG_Vac_Seal_Led   
+         JMP        TimeCountRet         
+         JBC        Led_Souse_Flag   
+         JMP        TimeCountRet                      
+         JBC        FLAG_Seal 
+         JMP        TimeCountRet  
+         JBC        FLAG_Can 
+         JMP        TimeCountRet  
+           
+         INC        NoKey_Timer_Sec    ;0.53360秒      
+         MOV        A,@113   
+         SUB        A,NoKey_Timer_Sec   
+         JBS        STATUS,0
+         JMP        TimeCountRet
+         CLR        NoKey_Timer_Sec    
+         
+         INC        NoKey_Timer_Min    
+         MOV        A,@5
+         SUB        A,NoKey_Timer_Min   
+         JBS        STATUS,0
+         JMP        TimeCountRet  
+          
+         BC         Vacuum_Finish
+         BS         TimerFlag_5Min
+                                        ;打开加热功能，加热功能具有最高级
+         BC         FLAG_Vac_Seal       ;其他功能清零  
+                                        ;                
+                                        ;每次按下按键，打开加热，程序先检测NTC电阻
+          
+                                        ;大于5分钟，其它灯熄灭
+                                        ;大于5分钟，SEAL灯闪  
+                                        ;抽气功能指示灯点亮关闭标志位    
+                                        ;置0，两分钟都抽气指示灯关闭  
+                                       
+         BC        FLAG_Vac_Seal_Led     
+         BC        Led_Souse_Flag                   
+         BC        FLAG_Seal 
+         BC        FLAG_Can 
+                                                                     
+         MOV       A,@12
+         SUB       A,NoKey_Timer_Min   
+         JBS       STATUS,0
+         JMP       TimeCountRet
+         CLR       NoKey_Timer_Min     ;大于12分钟，所以灯熄灭
+         
+         BC        TimerFlag_5Min 
+         BC        Power_Flag           
+;--------------------------------------------------------------------
+TimeCountRet:
+           
+	    RET
+;---------------------------------------------------------------------

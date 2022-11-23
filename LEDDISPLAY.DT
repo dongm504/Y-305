@@ -1,0 +1,194 @@
+LedDisplay:
+
+;------------------------------------------------
+             JBC       Power_Flag  
+             JMP       Led_Display_3
+                    
+             BS        Led_W 
+             BS        Led_Power
+             BS        Led_Seal 
+             BS        Led_Auto 
+             JMP       LedDisplay_90
+Led_Display_3:             
+;-------------------------------------------------
+;五分钟定时时间到
+             JBS       TimerFlag_5Min
+             JMP       Led_Display_2
+                   
+             BS        Led_W 
+             BS        Led_Power
+             BS        Led_Auto  
+             BS        Led_Seal     
+             BS        Led_Auto   
+             JBS       TimerFlagLED_100mS  
+             JMP       $+3
+             BS        Led_Seal 
+             JMP       $+2
+             BC        Led_Seal  
+             JMP       LedDisplay_90
+;-------------------------------------------------             
+Led_Display_2:
+             JBC       Power_Flag 
+             JMP       $+3 
+             BS        Led_Power
+             JMP       $+2  
+             BC        Led_Power   
+;封口指示灯以100MS闪烁：
+
+             JBS       TimerFlag_3Sec
+             JMP       Led_Display_EER
+                             
+             JBS       TimerFlagLED_100mS  
+             JMP       $+3
+             BS        Led_Seal 
+             JMP       $+2
+             BC        Led_Seal 
+              
+Led_Display_EER: 
+              
+             MOV      A,Intensity  
+             XOR      A,@6
+             JBC      STATUS,Z 
+             JMP      Led_Display_LMHDW_Close
+                     
+             JBS      TimerFlag_3Sec
+             JMP      Led_Display_1
+             
+Led_Display_LMHDW_Close:            
+         
+             BS       Led_W 
+             JMP      Speed_Led_90
+             
+Led_Display_1:
+/*******************************************************/
+;使用腌制功能时候，真空封口，单封，干/湿 3个指示灯循环跑马灯
+
+             JBS     Led_Souse_Flag  
+             JMP     Run_Led_90
+                     
+             JBS     Run_Led_500mS  
+             JMP     Run_Led_91
+             BC      Run_Led_500mS  
+             
+             INC     Led_Souse 
+             MOV     A,Led_Souse
+             SUB     A, @1
+             JBS     STATUS,0
+             JMP     Run_Led_95
+               
+             BS      Led_W          
+             BC      Led_Seal 
+             BS      Led_Auto 
+             JMP     Run_Led_91
+/********************************************************/             
+Run_Led_95:       
+             MOV     A,Led_Souse
+             SUB     A,@2 
+             JBS     STATUS,0
+             JMP     Run_Led_94
+   
+             BS      Led_W          
+             BS      Led_Seal 
+             BC      Led_Auto 
+             JMP     Run_Led_91
+/********************************************************/             
+Run_Led_94:    
+             MOV     A,Led_Souse
+             SUB     A, @3
+             JBS     STATUS,0
+             JMP     Run_Led_93  
+             CLR     Led_Souse       
+             BC      Led_W          
+             BS      Led_Seal 
+             BS      Led_Auto 
+             JMP     Run_Led_91  
+/********************************************************/
+Run_Led_93:
+/*
+             INC     Led_Souse 
+             MOV     A,Led_Souse
+             SUB     A, @4
+             JBS     STATUS,0
+             JMP     Run_Led_92
+               
+             BC      Led_W          
+             BS      Led_Seal 
+             BS      Led_Auto 
+             JMP     Run_Led_91
+/********************************************************/   
+/*          
+Run_Led_92:       
+             MOV     A,Led_Souse
+             SUB     A,@5
+             JBS     STATUS,0
+             JMP     Run_Led_91
+             CLR     Led_Souse
+             BS      Led_W          
+             BS      Led_Seal 
+             BC      Led_Auto 
+             JMP     Run_Led_91
+*/
+/********************************************************/              
+                                     
+Run_Led_91:             
+             JMP     LedDisplay_90  
+
+Run_Led_90: 
+/*****************************************************/
+             JBC      FLAG_Moist_Dry  
+             JMP      $+3 
+             BS       Led_W              
+             JMP      $+2       
+             BC       Led_W                    
+;-----------------------------------------------------
+Speed_Led_90:      
+;------------------------------------------------------
+             JBC       TimerFlag_3Sec
+             JMP       Seal_Led_Flash
+                     
+             JBC       FLAG_Seal_Hot_Led
+             JMP       $+3
+             BS        Led_Seal 
+             JMP       $+2
+             BC        Led_Seal                 
+Seal_Led_Flash:                 
+Seal_Led_90:
+;-------------------------------------------------
+;真空封口
+             JBS       FLAG_Vac_Seal ;真空封口指示灯  
+             JMP       Vac_Seal_Led_Close
+    
+             JBC       FLAG_Vac_Seal_Led 
+             JMP       Vac_Seal_Led_Const
+             
+          ;   JBC       Vacuum_Finish
+          ;   JMP       Vac_Seal_Led_Flash
+             
+;当没有检测气动开关的时候，LED灯渐亮渐灭       
+             JBS       Led_Pwm_Flag
+             JMP       $+3
+             BC        Led_Auto 
+             JMP       $+2
+             BS        Led_Auto 
+             JMP       Vac_Seal_Led_90      
+;---------------------------------------------------
+;当检测气动开关的时候，LED灯闪
+Vac_Seal_Led_Flash:
+             JBS       TimerFlagLED_100mS
+             JMP       $+3
+             BS        Led_Auto 
+             JMP       $+2
+             BC        Led_Auto 
+             JMP       Vac_Seal_Led_90    
+;---------------------------------------------------                  
+Vac_Seal_Led_Const:             
+             BC        Led_Auto 
+             JMP       Vac_Seal_Led_90
+             
+Vac_Seal_Led_Close:    
+             BS        Led_Auto        
+Vac_Seal_Led_90: 
+ 
+LedDisplay_90:
+           RET
+;------------------------------------------------           

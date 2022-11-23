@@ -1,0 +1,164 @@
+;初始化子程序
+Initial:
+/*
+Bit 7 (INTE): INT signal edge 
+0: Interrupt occurs at the rising edge of the INT pin 
+1: Interrupt occurs at the falling edge of the INT pin 
+
+Bit 6 (INT): Interrupt enable flag 
+0: Masked by DISI or hardware interrupt 
+1: Enabled by the ENI/RETI instructions 
+This bit is readable only. 
+
+Bit 5 (TS): TCC signal source 
+0: Internal instruction cycle clock.  If P54 is used as I/O pin 
+1: Transition on the TCC pin
+ 
+Bit 4 (TE): TCC signal edge 
+0: Increment if the transition from low to high takes place on the TCC pin
+1: Increment if the transition from high to low takes place on the TCC pin. 
+                                           
+Bit 3 (PSTE): Prescaler enable bit for TCC 
+0: Prescaler disable bit.  TCC rate is 1:1. 
+1: Prescaler enable bit.  TCC rate is set as Bit 2 ~ Bit 0. 
+
+Bit 2 ~ Bit 0 (PST2 ~ PST0): TCC prescaler bits 
+PST2      PST1      PST0       TCC Rate 
+0         0         0          1:2 
+0         0         1          1:4 
+0         1         0          1:8 
+0         1         1          1:16 
+1         0         0          1:32 
+1         0         1          1:64 
+1         1         0          1:128 
+1         1         1          1:256 
+*/
+  	IPAGE	0
+;	IOW	    IOC50,@IOC50_INIT
+;	IOW	    IOC60,@IOC60_INIT
+;	IOW	    IOC70,@IOC70_INIT
+;	IOW	    IOCB0,@P5L_INIT	;禁止PORT5所有内部下拉
+;	IOW	    IOCC0,@OD_INIT	;禁止漏极开路输出	
+;	IOW	    IOCD0,@P5H_INIT	;禁止PORT5所有内部上拉
+
+ ;   IOW	    IOCE0,@0x0F	;使能看门狗，分频比1:256，P60作为普通IO口
+ ;   MOV     RE,0x02         ;使能 PORT5状态改变唤醒功能  
+ ;   CLR     PORT5
+;    CLR     PORT6                              
+ ;   MOV     PORT5,PORT5
+;    BC      SCR,IDLE  
+;    SLEP    ;进入Sleep模式	
+;	NOP
+	
+	
+	MOV	    A,@0x08;@0x0A	;TCC分频1:4  
+	CONTW
+;单片机晶振的设置，主要在程序里设置，在仿真软件内设置是无效的。
+;定时器主要和晶振有关，同时钟分频无关。250*8*1/16=125uS
+;------------------------------------------------------------
+	RPAGE	0   ;特殊寄存器（R5-RF）BANK0选择。
+	
+	ALLCLR	PORT5,PORT6,PORT7
+	
+;初始化IO口状态
+;	CLR	AISR		;全部为普通IO口
+    MOV     PORT6,@00000000B
+    MOV     PORT5,@00000000B
+    MOV     PORT7,@00000000B
+                     
+    MOV   A,@0X00              
+    MOV   AISR,A	     ;选择AD3作为采样口          
+	MOV   A,@0X00    ;P5.3口开始AD检测
+	MOV   ADCON,A	 ;参考电压为VDD,ADC的时钟预分频1:16
+    MOV   ADOC,@0X00  
+				                   ;清空AD结果寄存器
+	CLR	RE		                   ;清中断标志
+	CLR	RF		                   ;清中断标志
+	
+	
+	RPAGE	1           ;特殊寄存器（R5-RF）BANK1选择。
+	
+	ALLCLR	TBHP,TBLP
+;-----------------------------------------------------------
+	ALLCLR	PRD1,PRD2
+	ALLCLR	DT1,DT2		
+	
+        
+    MOV     PWMCON,@1          	        ;PMW1使能位
+    MOV     TMRCON,@01000010B           ;PWM的预分配为1/4
+    MOV     DT1,@0
+    MOV     PRD1,@PWM_Round
+;-----------------------------------------------------------
+
+;	CLR	    LVDIR		;禁止低电压检测
+	MOV	    SCR,@0x63	;选择TCC时钟源为主频，
+	;@0x62     4M      ;选择CPU时钟源为主频，
+	                    ;选择内振频率为4M
+	                    
+	                    
+;系统控制寄存器位定义
+;RCM0	==	0
+;RCM1	==	1		;IRC模式选择位
+				;RCM1	RCM0	Frequency(MHz)
+				;1	1	4
+				;1	0	16
+				;0	1	8
+				;0	0	1
+;IDLE	==	4		;Idle模式使能位
+				;IDLE=0 + SLEP ----> sleep模式
+				;IDLE=1 + SLEP ----> idle模式
+;CPUS	==	5		;CPU振荡源选择位
+				;0为副频(WDT的内部时钟基准16KHz)
+				;1为主频
+;TIMERSC	==	6		;TCC时钟源选择
+				;0为选择副频
+				;1为选择主频Fm/2或Fm/4	                    
+	                    
+	                    
+	                    
+	RPAGE	0
+;------------------------------------------------------------
+
+
+	IPAGE	0
+	IOW	    IOC50,@IOC50_INIT
+	IOW	    IOC60,@IOC60_INIT
+	IOW	    IOC70,@IOC70_INIT
+				;初始化IO方向
+	IOW	    IOC80,@0x00	;选择P64/P65/P66为普通IO口
+	IOW	    IOC90,@0x00	;初始化PWM1 timer
+	IOW	    IOCA0,@0x00	;初始化PWM2 timer
+
+	IOW	    IOCB0,@P5L_INIT	;禁止PORT5所有内部下拉
+	IOW	    IOCC0,@OD_INIT	;禁止漏极开路输出	
+	IOW	    IOCD0,@P5H_INIT	;禁止PORT5所有内部上拉
+	IOW	    IOCE0,@0x8F	;使能看门狗，分频比1:256，P60作为普通IO口
+
+	IOW	    IOCF0,@0x01	;使能TCC中断 
+	IPAGE	1
+	IOW	    IOC51,@0x00
+	IOW	    IOC61,@0x00 
+	IOW	    IOC71,@0x00
+	IOW	    IOC81,@0x00
+	IOW	    IOCF1,@P6H_INIT	;禁止PORT6所有内部上拉
+	
+	IPAGE	0
+;------------------------------------------------------------
+	MOV	    FSR,@0x10
+ClrLoop:
+	CLR	    INDF
+	INC	    FSR
+	JBC  	FSR,6
+	BS	    FSR,5
+	MOV	    A,FSR
+	AND	    A,@0x7F
+	CJBC	STATUS,Z,ClrLoop
+				;清空用户寄存器的寄存器
+				
+;-------------------------------------------------------
+   	RPAGE	0
+	BANK    0
+	IPAGE	0
+    BC     Idle_Release        
+;------------------------------------------------------------
+	RET

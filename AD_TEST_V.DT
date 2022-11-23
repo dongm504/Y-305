@@ -1,0 +1,28 @@
+AD_Test_V:
+;热敏电阻AD检测程序。	                          
+	     CLR     Rwk03            
+         CLR     Rwk04
+         MOV     Count_R,@8 
+         					  ;开ADC的电源,致能ADO采样口     
+LOOP_AD_12bit1:  							      
+	     CALL    AD_CALI_P	  ;调用精度校正子程序     
+	     BS      ADCON,ADRUN  ;开始AD转换
+	     JBC     ADCON,ADRUN  ;判断是否转换完成
+	     JMP     $-1
+	       	     
+	     ADD     Rwk03,ADDATA1L
+	     ADDC    Rwk04,ADDATA1H  
+
+	 	 
+         DJZ     Count_R                       
+         JMP     LOOP_AD_12bit1                           
+         MOV     Count_R,@3  
+Ad30_12bit1:                                     
+         BC      STATUS,C                            
+         RRC     Rwk04                           
+         RRC     Rwk03                         
+         DJZ     Count_R                              
+         JMP     Ad30_12bit1
+         
+                            
+         RET

@@ -1,0 +1,84 @@
+AD_Test:  
+;--------------------------------------------------------------
+       INC      AD_Count_R     
+       MOV      A,@3
+       SUB      A,AD_Count_R  
+       JBS      STATUS,0
+       JMP      AD_Test_1
+       CLR      AD_Count_R
+;--------------------------------------------------------------                
+AD_Test_1:
+       MOV      A,AD_Count_R  
+   	   ADD	    PC,A
+       JMP      Ntc_AD
+       JMP      Motor_AD
+       JMP      Battery_AD
+       JMP      AD_Test_90  
+;--------------------------------------------------------------      
+Battery_AD: 	
+;检测电池电压
+       MOV     A,@0X40            
+	   MOV     AISR,A	     ;选择ADC6作为采样口          
+	   MOV     A,@0X2E       ;P55口开始AD检测
+	   MOV     ADCON,A	     ;参考电压为VDD,ADC的时钟预分频1:16
+	                         ;调用AD程序		                                	                          	                          
+	   CALL    AD_Test_V                    
+       MOV     Rwk_Temperture01,Rwk03  
+	   MOV     Rwk_Temperture02,Rwk04 
+	   
+	   MOV     AD_Vol_Buf1,Rwk_Temperture01       
+       MOV     AD_Vol_Buf10,Rwk_Temperture02  
+         
+	   CALL    Mn_Vol_V   ;检测电池电压
+	   JMP     AD_Test_90  
+;---------------------------------------------------------------
+;检测NTC
+Ntc_AD: 
+;---------------------------------------------------------------
+
+    ;   MOV     A,@0X20             
+	;   MOV     AISR,A	  ;选择ADC5作为采样口          
+	;   MOV     A,@0X0D     ;P55口开始AD检测
+	;   MOV     ADCON,A	  ;参考电压为VDD,ADC的时钟预分频1:16
+	                          ;调用AD程序		                                	                          	                          
+	;   CALL    AD_Test_V                    
+    ;   MOV     Rwk_Temperture01,Rwk03  
+    ;   MOV     Rwk_Temperture02,Rwk04    
+    ;   CALL    Mn_Temperture_V   ;处理AD采集的热敏电阻的数据  
+       JMP     AD_Test_90  
+;--------------------------------------------------------------------------
+;检测电机电流 
+Motor_AD:
+      
+       JBC      Mode_Pwm_Speed2 
+       JMP      AD_Test_Motor_Low
+       MOV      A,@0X20             
+	   MOV      AISR,A	    ;选择ADC5作为采样口          
+	   MOV      A,@0X2D    ;P70口开始AD检测
+	   MOV      ADCON,A	    ;参考电压为VDD,ADC的时钟预分频1:16
+	                        ;调用AD程序		                                	                          	                          
+	   CALL     AD_Test_V                    
+       MOV      Rwk_Temperture01,Rwk03  
+	   MOV      Rwk_Temperture02,Rwk04  
+	 ;  MOV      AD_Vol_Buf1,Rwk_Temperture01       
+     ;  MOV      AD_Vol_Buf10,Rwk_Temperture02    
+	   CALL     Mn_Low_Motor_V  
+	   JMP      AD_Test_90 	       
+AD_Test_Motor_Low:	       
+	   JBC      Mode_Pwm_Speed1  
+	   JMP      AD_Test_90 
+	   MOV      A,@0X20             
+	   MOV      AISR,A	     ;选择ADC5作为采样口          
+	   MOV      A,@0X0D     ;P70诳糀D检测
+	   MOV      ADCON,A	     ;参考电压为VDD,ADC的时钟预分频1:16
+	                         ;调用AD程序		                                	                          	                          
+	   CALL    AD_Test_V                    
+       MOV     Rwk_Temperture01,Rwk03  
+	   MOV     Rwk_Temperture02,Rwk04 
+	 ;  MOV     AD_Vol_Buf1,Rwk_Temperture01       
+     ;  MOV     AD_Vol_Buf10,Rwk_Temperture02   
+	   CALL    Mn_Motor_V  
+	     
+;--------------------------------------------------------------------------
+AD_Test_90:
+        RET

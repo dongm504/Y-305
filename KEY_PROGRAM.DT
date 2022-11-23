@@ -1,0 +1,41 @@
+Key_Program:
+;=========================================================      
+;检测是否有充电   
+         JBS   Test_VIN 
+         JMP   Swich_Open
+          
+         CLR   WW02 
+         INC   WW03                     
+         MOV   A,@5
+         SUB   A,WW03
+         JBS   STATUS,0 
+         JMP   Swich_No_90     
+         CLR   WW03 
+;有充电的时候，功能关闭
+
+         JBC   Key_DC_Chargen
+         JMP   Swich_No_90 
+         BS    Key_DC_Chargen 
+         BS    Chargeing 
+         BC    Idle_Release
+         MOV   Mode_Count,@4           
+         CLR   Key_Delay 
+   
+Swich_No_90:                
+         JMP   Swich_Open_90
+;=============================================================
+Swich_Open:
+         CLR   WW03         ;                                            
+         INC   WW02                   
+         MOV   A,@5      
+         SUB   A,WW02
+         JBS   STATUS,0      
+         JMP   Swich_Open_90
+         CLR   WW02  
+;没有充电
+         BC    Key_DC_Chargen 
+         BC    Com_VIN          
+Swich_Open_90:  
+;=============================================================
+Key_Program_90:
+         RET  

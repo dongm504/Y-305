@@ -1,0 +1,125 @@
+KeyService:
+;;==============================================;
+;;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;
+;;----------------------------------------------;
+;;按键值处理程序 检测复位按键。
+;;----------------------------------------------;
+        JBC      Key_DC_Chargen ;充电的时候按键无功能
+        JMP      Mn_key_scan_led_show_90    
+       
+        CLR     KEY_Buffer      
+        
+        JBC     Key1  
+        JMP     Mn_key_DATA_CHE       
+        MOV     KEY_Buffer,@1	      
+;---------------------------------------------------------------------------------------        
+Mn_key_DATA_CHE:  
+                             ;按键值处理
+        JBC     Key_Indx_Down 
+        JMP     KEY_UP        
+KEY_COMP_1:                                     ;按键保存 ，比较40次 按键状态比较
+        JBC     Key_Indx_have                   ;
+        JMP     KEY_COMP_2                      ;
+        MOV     A,KEY_Buffer                    ;
+        JBC     STATUS,Z                        ;
+        JMP     Mn_key_scan_led_show_90         ;
+        MOV     KEY_Buffer_COMP,KEY_Buffer      ;                                                                    
+        CLR     KEY_CONT                        ;比较次数清0                                     ;
+        BS      Key_Indx_have                   ;
+        JMP     Mn_key_scan_led_show_90         ;
+KEY_COMP_2:
+;=============================================================================
+        MOV     A,KEY_Buffer                    ;判断按键值是否相等
+        XOR     A,KEY_Buffer_COMP               ;
+        JBS     STATUS,Z 
+        JMP     KEY_COMP_3
+  
+        INC     KEY_CONT
+        NOP                         
+        MOV     A,@10
+        SUB     A,KEY_CONT   
+        JBS     STATUS,C                        ;
+        JMP     Mn_key_scan_led_show_90         ;
+        BC      Key_Indx_have            
+        CLR     KEY_Buffer_COMP                 ;
+        BS      Key_Indx_Down 
+        JMP     Mn_key_DATA_CHE_10
+KEY_COMP_3:                                     ;按键值不相等－－>按键值无效 重新保存
+KEY_COMP_90:                                    ;
+        BC      Key_Indx_have                   ;
+        CLR     KEY_Buffer_COMP                 ;                                             ;
+        JMP     Mn_key_scan_led_show_90         ;
+;-----------------------------------------------;
+Mn_key_DATA_CHE_10:                      
+       MOV      A,KEY_Buffer 
+   	   ADD	    PC,A
+       NOP
+       JMP      Key_S1
+       JMP      Key_S2
+       JMP      Key_S3
+       JMP      Key_S4
+       JMP      KEY_RET       
+;--------------------------------------------------------------
+Key_S1:  
+       BS        Idle_Release
+       CLR       Speed_Timer
+       
+       MOV       A,Mode_Count    
+       JBS       STATUS,Z
+       JMP       Key_S1_91
+       MOV       Mode_Count,@4      
+Key_S1_91:     
+       BC        Err_Vol 
+       BC        Err_Motor  
+       RRC       Mode_Count
+       JBS       STATUS,C
+       JMP       Key_S1_90 
+       MOV       Mode_Count,@4      
+       BC        Idle_Release
+       CLR       Key_Delay
+      
+Key_S1_90:
+       JMP       KEY_RET   
+              
+;--------------------------------------------------------------    
+Key_S2:                  
+Key_S2_90:
+       JMP      KEY_RET      
+;--------------------------------------------------------------
+Key_S3:
+Key_S3_90:
+       JMP      KEY_RET
+;--------------------------------------------------------------
+Key_S4:                
+Key_S4_90:
+       JMP      KEY_RET        
+;--------------------------------------------------------------
+KEY_RET: 
+       BS       Key_Indx_Down          ;
+;-----------------------------------------------;
+;;\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\;
+;-----------------------------------------------;
+KEY_UP:  
+        MOV        A,KEY_Buffer                 ;
+        JBS        STATUS,Z                     ;
+        JMP        MOV_CONT_KEY                 ;按键松开                                                                                                                ;
+        DJZ        KEY_CONT                     ;
+        JMP        Mn_key_scan_led_show_90      ;
+        BC         Key_Indx_Down  
+;-----------------------------------------------;  
+MOV_CONT_KEY:     
+        MOV        A,@10                        ;                    
+        MOV        KEY_CONT,A                   ;   
+Mn_key_scan_led_show_90:                        ;
+                                                ;
+        RET                                     ;
+;-----------------------------------------------;
+
+
+
+
+     
+                   
+ 
+
+

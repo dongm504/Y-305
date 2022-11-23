@@ -1,0 +1,77 @@
+
+		 CLR     Rwk01            
+         CLR     Rwk02
+         MOV     Count_R,@8 
+         					  ;开ADC的电源,致能ADO采样口     
+LOOP_AD_12bit:  							      
+	     CALL    AD_CALI_P	  ;调用精度校正子程序     
+	     BS      ADCON,ADRUN  ;开始AD转换
+	     JBC     ADCON,ADRUN  ;判断是否转换完成
+	     JMP     $-1  
+	        
+	     MOV     A,ADDATA  ;读取ADC 4-11位结果值
+	    
+	     ADD     Rwk01,A
+	     ADDC    Rwk02,@0
+	 	 
+         DJZ     Count_R                       
+         JMP     LOOP_AD_12bit                           
+         MOV     Count_R,@3  
+Ad30_12bit:                                     
+         BC      STATUS,C                            
+         RRC     Rwk02                           
+         RRC     Rwk01                          
+         DJZ     Count_R                              
+         JMP     Ad30_12bit 
+AD_Program_90:
+         RET
+;********************************************************
+;   AD校正子程序部分
+;********************************************************
+AD_CALI_P:
+	    MOV 	COUNTER,@0X07
+	    MOV 	ADOC,@0XF8		;使能ADC位准校正功能 
+CAL_LOOP_P:
+	    BS  	ADCON,ADRUN		;开始AD转换
+	    JBC 	ADCON,ADRUN		;判断是否转换完成
+
+    JMP 	$-1
+	    MOV	    A,ADDATA1H
+	    AND	    A,@0X0F
+	    JBS	    STATUS,Z
+	    JMP	    CAL_STILL_P       
+	    MOV 	A,ADDATA1L       
+	    JBC 	STATUS,Z   		;判断ADC低位元组结果值是否为0
+	    JMP 	CAL_END
+CAL_STILL_P:
+        MOV 	A,@0X08
+	    SUB 	ADOC,A			;每次微调2LSB        
+	    DJZ 	COUNTER			;至多减七次          
+	    JMP 	CAL_LOOP_P    
+/**********************************************************
+***********************************************************/    
+AD_CALI_N:					    ;校正ADC位准负电压
+	    MOV 	A,@0X07
+	    MOV 	COUNTER,A
+	    MOV 	A,@0X80			;使能ADC位准校正功能
+  	    MOV 	ADOC,A
+CAL_LOOP_N:
+	    BS  	ADCON,ADRUN		;开始AD转换
+	    JBC 	ADCON,ADRUN		;判断是否转换完成
+	    JMP 	$-1 
+	    MOV	    A,ADDATA1H
+	    AND	    A,@0X0F
+	    JBS	    STATUS,Z 
+	    JMP	    CAL_STILL_N               
+	    MOV 	A,ADDATA1L		;判断ADC低位元组结果值是否为0
+	    JBC 	STATUS,Z 
+	    JMP 	CAL_END
+CAL_STILL_N:  
+	    MOV 	A,@0X08 
+	    ADD 	ADOC,A			;每次微调2LSB        
+	    DJZ 	COUNTER		  	    ;至多减七次 
+	    JMP 	CAL_LOOP_N       
+CAL_END: 
+	    BC  	ADOC,CALI 			;除能ADC位准校正功能 
+AD_CALI_P_90:
+         RET

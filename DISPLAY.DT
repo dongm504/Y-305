@@ -1,0 +1,42 @@
+;=======================================================================
+Display:
+     JBS  Key_DC_Chargen   
+     JMP  Display_Led_Flash
+     JBS  Chargeing   
+     JMP  Charge_finish
+     BS   IO_Led_A ;红灯    ;充电的时候红灯亮
+     BC   IO_Led_B ;绿灯    ;充电的时候绿灯亮  
+     BS   Com_VIN           ;打开升压芯片
+     JMP  Display_Led_90   
+Charge_finish:
+     BC   IO_Led_A ;红灯    ;充电的时候红灯亮
+     BS   IO_Led_B ;绿灯    ;充电的时候绿灯亮   
+     BC   Com_VIN           ;关闭升压芯片
+     JMP  Display_Led_90
+;----------------------------------------------------------------
+Display_Led_Flash:       
+;;进入工作模式  
+     JBC   TimerFlag_2S 
+     JMP   Led_Flash 
+;--------------------------------------------------
+     JBC   Mode_Pwm_Speed1  
+     JMP   Led_Flash_1
+     JBS   Mode_Pwm_Speed2  
+     JMP   LED_CLOSE
+Led_Flash_1:     
+     JBS  Err_Vol    
+     JMP  LED_CLOSE
+Led_Flash:        
+     JBC  TimerFlag_100mSLED
+     JMP  $+3
+     BC   IO_Led_A
+     JMP  $+2
+     BS   IO_Led_A  
+     JMP  Display_Led_90       
+;----------------------------------------------------------------     
+LED_CLOSE:
+     BC   IO_Led_B    
+     BC   IO_Led_A              
+Display_Led_90:  
+;=======================================================================
+     RET

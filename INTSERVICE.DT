@@ -1,0 +1,78 @@
+;中断服务子程序
+IntService:
+;-----------------------------------------------------
+;产生一个1MS的时间基准。(0.975125)
+;-----------------------------------------------------
+      mov		Acc_buf,a			     ;中断保护
+      swap	    Acc_buf
+	  swapa	    STATUS
+	  mov		Sr_buf,a
+      disi
+      CJBS	    RF,TCIF,TccIntService	;TCC中断处理			
+ 	  JMP	    NoInt
+;------------------------------------------------------------
+TccIntService:
+;------------------------------------------------------------    
+      MOV       TCC,@(256-255)
+;------------------------------------------------------------
+     ; BS        TimerFlag_125uS 
+      
+      CALL	    Uart_Tx		;传送数据处理
+      
+      INC       Count5mSec ;5MS              
+      MOV       A,@41
+      SUB       A,Count5mSec 
+      JBS       STATUS,0
+      JMP       NoInt
+      CLR       Count5mSec
+      BS        TimerFlag_5mS   
+;------------------------------------------------------------''
+;马达控制 
+    JBC       Mode_Pwm_Speed1
+    JMP       Motor_Speed1
+    JBC       Mode_Pwm_Speed2  
+    JMP       Motor_Speed2
+    JMP       Motor_Clsoe_Init_90
+Motor_Speed1: 
+;------------------------------------------------------------
+    JBS       Speed_100mS 
+    JMP       Motor_Speed11
+    BC        Speed_100mS
+    
+    INC       Speed_Timer 
+    NOP
+    
+    MOV       A,@PWM_Speed1
+    SUB       A,Speed_Timer 
+    JBS       STATUS,0
+    JMP       Motor_Speed11
+    MOV       Speed_Timer,@PWM_Speed1
+       
+;-------------------------------------------------------------
+Motor_Speed11:
+    RPAGE	1 
+    MOV       DT1,Speed_Timer 
+    RPAGE	0
+    JMP       Mode_Motor_END             
+Motor_Speed2:
+    RPAGE	1
+    MOV       DT1,@PWM_Speed2
+    RPAGE	0
+    JMP       Mode_Motor_END   
+;----------------------------------------------------------              
+Motor_Clsoe_Init_90:      
+    RPAGE	1 
+    MOV       DT1,@0
+    RPAGE	0
+;---------------------------------------------------------
+Mode_Motor_END:             
+;-------------------------------------------------------------  
+NoInt:
+	  CLR	    RF	                ;清其它中断标志
+	  eni                           ;中断恢复
+  	  swapa	    Sr_buf				
+	  mov		STATUS,a
+	  swapa	    Acc_buf	
+;------------------------------------------------------------
+IntServiceRet:
+     RETI

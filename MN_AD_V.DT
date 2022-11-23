@@ -1,0 +1,218 @@
+;----------------------------------------------------------
+;电压低到5.0V的时候报警,停止工作
+    
+           
+Volage_Low_1      ==   0x29   ;电池电压为6.0V 保护  
+Volage_Low_10     ==   0x8
+Volage_High_1     ==   0xF0   ;电池电压为6.0V 保护 
+Volage_High_10    ==   0x8
+
+Volage_8V2_1      ==   0x10   ;电池电压为8.2V的时候，在充电半个小时。
+Volage_8V2_10     ==   0xB
+Volage_8V_1       ==   0x39  ;电池电压为8V的时候。
+Volage_8V_10      ==   0xB
+Mn_Vol_V:                                                                                                                                                                                                                                                                                                                                                                                                                          
+;---------------------------------------------------------------------------------- 
+;当大于6.4 跳转
+    CJG  Rwk_Temperture02,Rwk_Temperture01,@Volage_8V2_10,@Volage_8V2_1,Mn_Volage_8V2
+;产品进入低电压保护                                                                                                                                                                                                                                                                                                                                                                                                                          
+;----------------------------------------------------------------------------------     
+    CJG  Rwk_Temperture02,Rwk_Temperture01,@Volage_8V_10,@Volage_8V_1,Mn_Volage_V_90
+    INC  Charge_Timer7  
+    MOV  A,@3
+    SUB  A, Charge_Timer7  
+    JBS  STATUS,0
+    JMP  Low_Volage_Protect
+    CLR  Charge_Timer7
+    JBS  Key_DC_Chargen 
+    JMP  Low_Volage_Protect
+    BS   Chargeing 
+    CLR  Charge_Timer8  
+    CLR  Charge_Timer9       
+;---------------------------------------------------------------------    
+Low_Volage_Protect:   
+    CJL  Rwk_Temperture02,Rwk_Temperture01,@Volage_High_10,@Volage_High_1,Mn_Volage_V_1
+    CLR  Charge_Timer1
+    INC  Charge_Timer2  
+    MOV  A,@10
+    SUB  A,Charge_Timer2  
+    JBS  STATUS,0
+    JMP  Mn_Volage_V_90
+    CLR  Charge_Timer2
+    BC   Err_Vol   
+    JMP  Mn_Volage_V_90 
+Mn_Volage_V_1:    
+    CJG  Rwk_Temperture02,Rwk_Temperture01,@Volage_Low_10,@Volage_Low_1,Mn_Volage_V_90     
+    CLR  Charge_Timer2
+    INC  Charge_Timer1  
+    MOV  A,@10
+    SUB  A, Charge_Timer1  
+    JBS  STATUS,0
+    JMP  Mn_Volage_V_90
+    CLR  Charge_Timer1
+;电压低于6.2V 停止工作
+    JBC  Err_Vol 
+    JMP  Mn_Volage_V_90
+    BS   Err_Vol
+    ;CLR  Count2Sec 
+    ;BS   TimerFlag_2S    
+    ;BC   Idle_Release
+   ; MOV  Mode_Count,@4  
+   ; CLR  Key_Delay 
+    JMP  Mn_Volage_V_90 
+    
+Mn_Volage_8V2:
+;大于8.2V在充电半小时    
+   ;在充半个小时
+;290mS时间基准
+    CLR  Charge_Timer7  
+    INC  Charge_Timer8      
+    MOV  A,@100
+    SUB  A, Charge_Timer8 
+    JBS  STATUS,0
+    JMP  Mn_Volage_V_90 
+    CLR  Charge_Timer8 
+    
+    INC  Charge_Timer9    
+     
+    MOV  A,@60
+    SUB  A, Charge_Timer9
+    JBS  STATUS,0
+    JMP  Mn_Volage_V_90 
+    MOV  A,@100
+    MOV  Charge_Timer8,A  
+    MOV  A,@60
+    MOV  Charge_Timer9,A 
+    
+    BC   Chargeing 
+Mn_Volage_V_90:
+     RET
+;-----------------------------------------------------------------------------------
+;大于70度
+;小于45度
+Temperture_Low_1      ==   0xDF ;      
+Temperture_Low_10     ==   0x2
+Temperture_High_1     ==   0x28 ;     
+Temperture_High_10    ==   0x5
+;检测NTC
+Mn_Temperture_V:       
+    CJL  Rwk_Temperture02,Rwk_Temperture01,@Temperture_High_10,@Temperture_High_1,Mn_Temperture_V_1
+    CLR  Charge_Timer4
+    INC  Charge_Timer3  
+    MOV  A,@10
+    SUB  A, Charge_Timer3  
+    JBS  STATUS,0
+    JMP  Mn_Temperture_V_90
+    CLR  Charge_Timer3
+;温度正常
+    BC    Err_Heat 
+    JMP  Mn_Temperture_V_90 
+Mn_Temperture_V_1:    
+    CJG  Rwk_Temperture02,Rwk_Temperture01,@Temperture_Low_10,@Temperture_Low_1,Mn_Temperture_V_90  
+    CLR  Charge_Timer3
+    INC  Charge_Timer4  
+    MOV  A,@10
+    SUB  A,Charge_Timer4  
+    JBS  STATUS,0
+    JMP  Mn_Temperture_V_90
+    CLR  Charge_Timer4
+;温度大于70度，报警    
+    JBC  Err_Heat 
+    JMP  Mn_Temperture_V_90
+    BS   Err_Heat 
+  ;  CLR  Count2Sec 
+  ;  BS   TimerFlag_2S    
+   ; BC   Idle_Release
+  ; BC   Idle_Release
+  ;  MOV  Mode_Count,@4  
+  ;  CLR  Key_Delay 
+Mn_Temperture_V_90:
+     RET     
+;----------------------------------------------------------------------------------------
+Motor_Low_1      ==   0x47 
+Motor_Low_10     ==   0x0
+Motor_High_1     ==   0x49 
+Motor_High_10    ==   0x0
+;----------------------------------------------------------
+LMotor_Low_1      ==   0x23
+LMotor_Low_10     ==   0x0
+LMotor_High_1     ==   0x25 
+LMotor_High_10    ==   0x0
+;电流大于15A 电压为0.005*15*15 = 1.125V  
+;实际测试为0.98V
+;AD值为1D1
+Mn_Motor_V:  
+
+    CJL  Rwk_Temperture02,Rwk_Temperture01,@Motor_High_10,@Motor_High_1,Mn_Motor_V_1
+    CLR  Charge_Timer6
+    INC  Charge_Timer5  
+    MOV  A,@10
+    SUB  A, Charge_Timer5  
+    JBS  STATUS,0
+    JMP  Mn_Motor_V_90
+    CLR  Charge_Timer5
+    
+    JBC  Err_Motor 
+    JMP  Mn_Volage_V_90
+    BS   Err_Motor 
+    CLR  Count2Sec 
+    BS   TimerFlag_2S    
+    BC   Idle_Release
+    MOV  Mode_Count,@4  
+    CLR  Key_Delay   
+    JMP  Mn_Motor_V_90 
+Mn_Motor_V_1:    
+    CJG  Rwk_Temperture02,Rwk_Temperture01,@Motor_Low_10,@Motor_Low_1,Mn_Motor_V_90     
+    CLR  Charge_Timer5
+    INC  Charge_Timer6 
+    MOV  A,@5
+    SUB  A, Charge_Timer6
+    JBS  STATUS,0
+    JMP  Mn_Motor_V_90
+    CLR  Charge_Timer6
+;电流小于15A
+    BC   Err_Motor 
+    
+Mn_Motor_V_90:
+     RET     
+;-----------------------------------------------------------------------------------
+Mn_Low_Motor_V:
+;低档电流检测
+    CJL  Rwk_Temperture02,Rwk_Temperture01,@LMotor_High_10,@LMotor_High_1,Mn_Low_Motor_V_1
+    CLR  Charge_Timer6
+    INC  Charge_Timer5  
+    MOV  A,@10
+    SUB  A, Charge_Timer5  
+    JBS  STATUS,0
+    JMP  Mn_Low_Motor_V_90
+    CLR  Charge_Timer5
+    
+    JBC  Err_Motor 
+    JMP  Mn_Low_Motor_V_90
+    BS   Err_Motor    
+    CLR  Count2Sec 
+    BS   TimerFlag_2S    
+    BC   Idle_Release
+    MOV  Mode_Count,@4  
+    CLR  Key_Delay    
+    JMP  Mn_Low_Motor_V_90
+Mn_Low_Motor_V_1:    
+    CJG  Rwk_Temperture02,Rwk_Temperture01,@LMotor_Low_10,@LMotor_Low_1,Mn_Low_Motor_V_90    
+    CLR  Charge_Timer5
+    INC  Charge_Timer6 
+    MOV  A,@5
+    SUB  A, Charge_Timer6
+    JBS  STATUS,0
+    JMP  Mn_Low_Motor_V_90
+    CLR  Charge_Timer6
+    
+;电流小于15A
+    BC   Err_Motor  
+Mn_Low_Motor_V_90:
+     RET     
+;-----------------------------------------------------------------------------------    
+
+
+         
+
+         
