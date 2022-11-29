@@ -1,39 +1,35 @@
 Timer_PrOgram:
-     
-          INC       Count100mSec       ;500MS
-          MOV       A,@18
-          SUB       A,Count100mSec 
+;---------------------------------------------------------------
+          INC       Count50mSec       ;500MS
+          MOV       A,@9
+          SUB       A,Count50mSec 
           JBS       STATUS,0
-          JMP       Timer_Program_90
+          JMP       Timer_Program_92
           
-          CLR       Count100mSec                          
-          BS        TimerFlag_100mS 
-          BS        Speed_100mS 
-           
-           
+          CLR       Count50mSec                          
+          BS        Speed_50mS 
+Timer_Program_92:              
+;----------------------------------------------------------------     
+                                  
           INC       Count500mSec       ;500MS
-          MOV       A,@5
+          MOV       A,@50
           SUB       A,Count500mSec 
           JBS       STATUS,0
-          JMP       Timer_Program_91
-          
+          JMP       Timer_Program_90        
           CLR       Count500mSec                          
           BS        TimerFlag_100mS 
-          BS        Speed_100mS  
           JBS       TimerFlag_100mSLED
           JMP       $+3
           BC        TimerFlag_100mSLED 
           JMP       $+2
           BS        TimerFlag_100mSLED 
 Timer_Program_91:        
-;-------------------------------------------      
-          
+;-------------------------------------------              
           INC       Count2Sec      ;500MS
-          MOV       A,@20
+          MOV       A,@10
           SUB       A,Count2Sec  
           JBS       STATUS,0
-          JMP       Timer_Program_90
-          
+          JMP       Timer_Program_90         
           CLR       Count2Sec                       
           BC        TimerFlag_2S  
 ;-------------------------------------------

@@ -34,7 +34,12 @@ Swich_Open:
          CLR   WW02  
 ;Ã»ÓÐ³äµç
          BC    Key_DC_Chargen 
-         BC    Com_VIN          
+         BC    Com_VIN  
+         BC    Led_1Second   
+         BC    Chargen_First 
+         CLR   Charge_Timer3
+         CLR   Charge_Timer4  
+         CLR   Count100mSec     
 Swich_Open_90:  
 ;=============================================================
 Key_Program_90:

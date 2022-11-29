@@ -17,7 +17,7 @@ TccIntService:
 ;------------------------------------------------------------
      ; BS        TimerFlag_125uS 
       
-      CALL	    Uart_Tx		;传送数据处理
+;      CALL	    Uart_Tx		;传送数据处理
       
       INC       Count5mSec ;5MS              
       MOV       A,@41
@@ -35,9 +35,9 @@ TccIntService:
     JMP       Motor_Clsoe_Init_90
 Motor_Speed1: 
 ;------------------------------------------------------------
-    JBS       Speed_100mS 
+    JBS        Speed_50mS 
     JMP       Motor_Speed11
-    BC        Speed_100mS
+    BC         Speed_50mS 
     
     INC       Speed_Timer 
     NOP

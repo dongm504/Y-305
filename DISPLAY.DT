@@ -2,17 +2,46 @@
 Display:
      JBS  Key_DC_Chargen   
      JMP  Display_Led_Flash
-     JBS  Chargeing   
-     JMP  Charge_finish
-     BS   IO_Led_A ;红灯    ;充电的时候红灯亮
-     BC   IO_Led_B ;绿灯    ;充电的时候绿灯亮  
-     BS   Com_VIN           ;打开升压芯片
-     JMP  Display_Led_90   
-Charge_finish:
+;-----------------------------------------   
+;时间基准是230uS
+     JBS  Led_1Second  
+     JMP  Display_Led_Chargen
+     
+     INC  Count1Sec       
+     MOV  A,@1
+     SUB  A,Count1Sec 
+     JBS  STATUS,0
+     JMP  Display_Led_NO_Bar
+     MOV  Count1Sec,@1
+     
      BC   IO_Led_A ;红灯    ;充电的时候红灯亮
-     BS   IO_Led_B ;绿灯    ;充电的时候绿灯亮   
-     BC   Com_VIN           ;关闭升压芯片
+     BC   IO_Led_B ;绿灯    ;充电的时候绿灯亮      
+     JMP  Display_Led_90       
+Display_Led_NO_Bar:    
+     BS   IO_Led_A ;红灯    ;充电的时候红灯亮
+     BC   IO_Led_B ;绿灯    ;充电的时候绿灯亮      
      JMP  Display_Led_90
+     
+Display_Led_Chargen:         
+;-----------------------------------------     
+     JBS   Chargeing       
+     JMP   Charge_finish
+     
+     BS    IO_Led_A ;红灯    ;充电的时候红灯亮
+     BC    IO_Led_B ;绿灯    ;充电的时候绿灯亮
+     INC   Count100mSec       ;500MS
+     MOV   A,@10
+     SUB   A,Count100mSec 
+     JBS   STATUS,0
+     JMP   Display_Led_90 
+     CLR   Count100mSec      
+     BS    Com_VIN           ;打开升压芯    
+     JMP   Display_Led_90   
+Charge_finish:
+     BC    IO_Led_A ;红灯    ;充电的时候红灯亮
+     BS    IO_Led_B ;绿灯    ;充电的时候绿灯亮   
+     BC    Com_VIN           ;关闭升压芯片
+     JMP   Display_Led_90
 ;----------------------------------------------------------------
 Display_Led_Flash:       
 ;;进入工作模式  

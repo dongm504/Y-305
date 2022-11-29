@@ -37,33 +37,38 @@
 Start:
      CALL      Initial	 
      BC        Err_Vol
-     BS        Chargeing      
+     BS        Chargeing   
+    
 MainLoop:
      WDTC
      ENI 
-;------------------------------------------------------------  		 
+;------------------------------------------------------------ 
+ 		 
      JBS      TimerFlag_5mS  
      JMP      MainLoop_3
      BC       TimerFlag_5mS   
-;------------------------------------------------------------        
+     
+;------------------------------------------------------------     
      CALL     KeyService 
      CALL     Timer_Program 
+;------------------------------------------------------------
 MainLoop_3:    
      JBS      TimerFlag_100mS 
      JMP      MainLoop_2
-     BC       TimerFlag_100mS      
+     BC       TimerFlag_100mS 
+;------------------------------------------------------------       
 ;工作的时候，直接电子显示 
 ;充电的时候不检查
      CALL     AD_Test 
      CALL     Key_Program   
      CALL     Display            
-    ; CALL     Idle_Program 
-     CALL     UartDataServiceTX    
+     CALL     Idle_Program 
+    ; CALL     UartDataServiceTX    
 ;------------------------------------------------------------    
 ;检测电池电压        `
 MainLoop_2:        
 MainLoop_90:  
-	 JMP	     MainLoop
+	 JMP	  MainLoop
 ;------------------------------------------------------------
 ;子程序包含区
     INCLUDE	"Initial.dt"

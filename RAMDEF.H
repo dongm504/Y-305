@@ -6,17 +6,17 @@
 ;--------------------------------------------------------------
 ;按键相关口
 
-IO_Led_B      ==  PORT6.0   ;Led灯1
+IO_Led_B      ==  PORT6.6  ;Led灯1
    ; IO_Led_A      ==  PORT6.4   ;Led灯1
-IO_Led_A      ==  PORT5.4   ;Led灯2
+IO_Led_A      ==  PORT5.5   ;Led灯2
     ;IO_Led_B      ==  PORT6.5   ;Led灯2
 
 ;Key1          ==  PORT5.0
-Key1          ==  PORT5.1
+Key1          ==  PORT5.4
 
-Test_VIN      ==  PORT5.3
-Com_VIN       ==  PORT6.1
-IO_Txd        ==  PORT5.0 
+Test_VIN      ==  PORT5.2
+Com_VIN       ==  PORT6.0
+IO_Txd        ==  PORT5.0
 ;通用寄存器分配
 ;------------------------------------------------------------
 Key_Indx          ==      0x10      
@@ -26,13 +26,14 @@ Chargeing                   ==     Key_Indx.2
 Key_DC_Chargen              ==     Key_Indx.3
 Low_Volage                  ==     Key_Indx.4
 Idle_Release                ==     Key_Indx.5
-Speed_100mS                 ==     Key_Indx.6
+Led_1Second                 ==     Key_Indx.6
+Speed_50mS                  ==     Key_Indx.7
 ;============================================================
 TimerFlag          ==     0x11
 TxEn                        ==      TimerFlag.0 
 TimerFlag_100mS             ==      TimerFlag.1
 TimerFlag_5mS               ==      TimerFlag.2
-Err_Heat                    ==      TimerFlag.3
+Chargen_First               ==      TimerFlag.3
 Err_Motor                   ==      TimerFlag.4
 Err_Vol                     ==      TimerFlag.5
 TimerFlag_2S                ==      TimerFlag.6
@@ -59,14 +60,14 @@ COUNTER	          ==      0x1D
 
 
 Mode_Count        ==      0x1E
+Mode_Pwm_Off          ==   Mode_Count.2
 Mode_Pwm_Speed1       ==   Mode_Count.1 
 Mode_Pwm_Speed2       ==   Mode_Count.0
+
 ;------------------------------------------------------------
 Count5mSec        ==      0x1F
 Count2Sec         ==      0x20
 ;------------------------------------------------------------
-
-
 Sr_buf	          ==      0x21	
 Acc_buf	          ==      0x22
 WW02              ==      0x23                                       
@@ -100,5 +101,6 @@ TxBuf3		      ==	0x39
 PackageStatus	  ==	0x3A
 AD_Vol_Buf1       ==	0x3B
 AD_Vol_Buf10      ==	0x3C
-
-
+Count50mSec       ==    0x3D
+Count1Sec         ==    0x3E
+Charge_Timer10    ==    0x3F
