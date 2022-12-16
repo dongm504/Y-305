@@ -17,7 +17,7 @@ TccIntService:
 ;------------------------------------------------------------
      ; BS        TimerFlag_125uS 
       
-;      CALL	    Uart_Tx		;传送数据处理
+     CALL	    Uart_Tx		;传送数据处理
       
       INC       Count5mSec ;5MS              
       MOV       A,@41

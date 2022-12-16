@@ -63,7 +63,7 @@ MainLoop_3:
      CALL     Key_Program   
      CALL     Display            
      CALL     Idle_Program 
-    ; CALL     UartDataServiceTX    
+     CALL     UartDataServiceTX    
 ;------------------------------------------------------------    
 ;ºÏ≤‚µÁ≥ÿµÁ—π        `
 MainLoop_2:        
